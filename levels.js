@@ -1,3 +1,5 @@
-levels={0:{"slices":[0.5,0.25], "speed": 20},
-1:{"slices":[0.5,0.25,0.25], "speed": 20},
-2:{"slices":[0.5,0.3,0.1], "speed": 20}}
+levels=[
+{slices:[4], speed: 20},
+{slices:[2,4], speed: 20},
+{slices:[2,4,4], speed: 20},
+{slices:[2,3,10], speed: 20}]

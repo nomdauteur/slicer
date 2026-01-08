@@ -107,16 +107,19 @@ function check() {
   var epsilon = 0.1;
   var precision=SLICER.checkPrecision(GOAL_SLICING, epsilon);
   if (precision.matched) {
-    console.log("You succeeded");
-    document.getElementById("next").disabled="";
-    var stars = Math.ceil(5 - precision.precision * (5/epsilon));
-    document.getElementById("score").style.display="block";
-    document.getElementById("score").textContent="Ваш счет: " +String.fromCodePoint(11088).repeat(stars);
-    console.log(precision.matches);
     var extra_cuts;
     if (GOAL_SLICING.reduce((accumulator, currentValue) => {
   return accumulator + currentValue; }, 0) == 1) extra_cuts = precision.totalCuts - GOAL_SLICING.length;
     else extra_cuts = precision.totalCuts - GOAL_SLICING.length -1;
+    console.log("You succeeded");
+    document.getElementById("next").disabled="";
+    var stars = Math.max(Math.ceil(5 - precision.precision * (5/epsilon))-extra_cuts,1);
+    document.getElementById("score").style.display="block";
+    document.getElementById("score").textContent="Ваш счет: " +String.fromCodePoint(11088).repeat(stars);
+    document.getElementById("extra").style.display="block";
+    document.getElementById("extra").textContent="Лишних разрезов: " +extra_cuts;
+    console.log(precision.matches);
+    
     console.log("Extra cuts: "+extra_cuts);
     console.log("Precision: "+precision.precision.toFixed(2));
   }
@@ -139,18 +142,32 @@ function next() {
   newGame();
 }
 
+function calculateSlices(slices) {
+  var displayable = [];
+  var calculable = [];
+
+  for (var i = 0; i < slices.length; i++) {
+    displayable.push("1/"+slices[i]);
+    calculable.push(1/slices[i]);
+  }
+
+  return {display: displayable, calculate: calculable}
+}
+
 function newGame() 
   {
     isGameOn=true;
     document.getElementById("score").style.display="none";
     document.getElementById("check").disabled="";
     document.getElementById("next").disabled="true";
-    console.log(levels);
+    var level_iteration = level_no % levels.length;
+    var speed_increaser = Math.floor(level_no / levels.length)+1;
+    slices = calculateSlices(levels[level_iteration].slices);
     document.getElementById("level").textContent="Уровень "+(level_no+1);
-    document.getElementById("goal").textContent="Разрезы: "+levels[level_no]["slices"];
-    document.getElementById("hint").textContent="Кликните мышью внутри рамки, чтобы запустить копье";
-    GOAL_SLICING = levels[level_no]["slices"];
-    SLICER = new Slicer(levels[level_no]["speed"], NUCLEUS, CIRCLE_RADIUS, WIDTH, HEIGHT);
+    document.getElementById("goal").textContent="Разрезы: "+slices.display;
+    document.getElementById("hint").innerHTML="<i>Кликните мышью внутри рамки, чтобы запустить копье</i>";
+    GOAL_SLICING = slices.calculate;
+    SLICER = new Slicer(levels[level_iteration].speed * speed_increaser, NUCLEUS, CIRCLE_RADIUS, WIDTH, HEIGHT);
 c = document.getElementById('canvas');
 
 ctx = c.getContext('2d');
