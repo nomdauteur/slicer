@@ -100,14 +100,14 @@ class Slicer { //contains information about current spears and amounts they slic
 				if (nth_current_taken[j]>-1) continue;
 				if (Math.abs(goalSlicing[i]-currentSlicing[j]) < epsilon) {
 					nth_goal_in_current[i] = j;
-					nth_current_taken[j] = 1;
+					nth_current_taken[j] = i;
 					flag +=1;
 					precision += Math.abs(goalSlicing[i]-currentSlicing[j]);
 					break;
 				}
 			}
 		}
-		return {matched: (flag == goalSlicing.length), matches: nth_goal_in_current, totalCuts: currentSlicing.length, precision: precision/goalSlicing.length}
+		return {matched: (flag == goalSlicing.length), matches: nth_goal_in_current, matches_inverse: nth_current_taken, totalCuts: currentSlicing.length, precision: precision/goalSlicing.length}
 	}
 
 	gameOver() {
@@ -115,9 +115,11 @@ class Slicer { //contains information about current spears and amounts they slic
 
 	}
 
-	resize(radius, center) {
+	resize(radius, center, width, height) {
 		this.radius=radius;
 		this.center=center;
+		this.width=width;
+		this.height=height;
 	}
 
 

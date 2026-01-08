@@ -51,6 +51,9 @@
         p {
           color: rgba(255,255,205,255);
           margin-left: 2vw;
+          font-size: 3vw;
+          margin-bottom: 1vw;
+          margin-top: 1vw;
         }
 
 h1 {
@@ -68,16 +71,17 @@ div {
       <div style="position:fixed;" id = "upper">
         <p id="level"></p>
         <p id="goal"></p>
-        <p id="hint"></p>
+        <p id="hint" style="font-size:1.5vw"></p>
       </div>
       <canvas style="position:fixed;" id="canvas">
       </canvas>
       <div style="position:fixed;" id = "lower"/>
-        <p style="padding-left:2vw;margin-right:1vw;display:flex"><button id="retry" onclick = "retry()">Начать с начала</button>
-        <button id="check" onclick = "check()">Проверить!</button>
-        <button id="next" onclick = "next()">Перейти на новый уровень</button></p>
-        <p style="padding-left:3vw; display:none" id="score">Ваш счет: ...</p>
-        <p style="padding-left:3vw; display:none" id="extra">Ваш счет: ...</p>
+        <p style="padding-left:2vw;margin-right:1vw;display:flex"><button id="retry" onclick = "retry()"></button>
+        <button id="check" onclick = "check()"></button>
+        <button id="next" onclick = "next()"></button></p>
+        <p style="padding-left:3vw; display:none" id="score"></p>
+        <p style="padding-left:3vw; display:none" id="yours"></p>
+        <p style="padding-left:3vw; display:none" id="extra"></p>
       </div>
     
       <p id="lang" style="bottom:0px; left:95vw; position:fixed; display:none;">Language</p>
