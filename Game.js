@@ -22,7 +22,7 @@ var HEIGHT=0;
 
 var isGameOn;
 
-var level_no = 0;
+
 
 
 function resize() {
@@ -67,7 +67,10 @@ NUCLEUS = {
 
 CIRCLE_RADIUS = WIDTH/4;
 
-if (SLICER!=null) SLICER.resize(CIRCLE_RADIUS,NUCLEUS,WIDTH,HEIGHT);
+if (SLICER!=null && SLICER != undefined && ctx!=null && ctx != undefined) {
+  SLICER.resize(CIRCLE_RADIUS,NUCLEUS,WIDTH,HEIGHT);
+  draw();
+}
 
 }
 window.addEventListener('load', load, false);
@@ -75,7 +78,9 @@ window.addEventListener('load', load, false);
 
 
 function load() {
-  document.getElementById('body').style.color = LINE_COLOR;
+  window.dataLoadFinished=0;
+  window.level_no = 0;
+    document.getElementById('body').style.color = LINE_COLOR;
    document.getElementById('lower').style.backgroundColor= BACK_COLOR;
    document.getElementById('upper').style.backgroundColor= BACK_COLOR;
    document.getElementById('canvas').style.backgroundColor= BACK_COLOR;
@@ -83,13 +88,67 @@ function load() {
 ctx = c.getContext('2d');
 ctx.font="bold 5vmin Arial";
 
-document.getElementById("retry").innerText=setText("Начать заново", "Start over");
-document.getElementById("check").innerText=setText("Проверить", "Submit");
-document.getElementById("next").innerText=setText("Следующий уровень", "Next level");
+    
+YaGames.init()
+
+    .then((ysdk) => {
         
-c.addEventListener('mouseup', throwSpear, false);
+        document.getElementById("lang").textContent=ysdk.environment.i18n.lang;
+        ysdk.features.LoadingAPI?.ready();
+        
+
+
+
+          ysdk.getLeaderboards()
+  .then(lb => {
+    
+
+      lb.getLeaderboardPlayerEntry('slicer')
+  .then(res => {console.log(res);
+   window.prev_score=res.score;})
+  .catch(err => {
+    if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
+      window.prev_score=0;}
+    });
+  });
+
+  ysdk.getPlayer().then(_player => {
+    console.log("ENTER PLAYER");
+        window.player = _player;
+        window.player.getData().then((data) => {
+          if (data != null) {
+            console.log("DATA NOT NULL");
+            window.loadedScore=data.score;
+            
+          }
+    window.dataLoadFinished=1;
+    c.addEventListener('mouseup', throwSpear, false);
 
          newGame();
+    });
+    }).catch(err => {
+      console.log("ERROR WHEN PLAYER");
+      window.dataLoadFinished=1;
+        // Ошибка при инициализации объекта Player.
+    });
+
+         while (document.getElementById("lang").textContent == "Language") {
+            sleep(20);
+        }
+
+        document.getElementById("retry").innerText=setText("Начать заново", "Start over");
+document.getElementById("check").innerText=setText("Проверить", "Submit");
+document.getElementById("next").innerText=setText("Следующий уровень", "Next level");
+
+       /* while (window.dataLoadFinished == 0) {
+      sleep(250);
+    }*/
+    console.log("CLOUD READ: "+window.loadedScore);
+ 
+    })
+    .catch(console.error);
+
+
 
 }
 
@@ -102,6 +161,12 @@ function throwSpear() {
 
 function check() {
   isGameOn=false;
+  YaGames.init()
+
+    .then((ysdk) => {     
+
+        ysdk.features.GameplayAPI?.stop(); 
+      });
   document.getElementById("check").disabled="true";
   var slicing = SLICER.getSlicing();
   var epsilon = 0.05;
@@ -113,7 +178,7 @@ function check() {
     else extra_cuts = precision.totalCuts - GOAL_SLICING.length -1;
     console.log("You succeeded");
     document.getElementById("next").disabled="";
-    var stars = Math.max(Math.ceil(5 - precision.precision * (5/epsilon))-extra_cuts,1);
+    var stars = Math.min(Math.max(Math.ceil(5 - precision.precision * (5/epsilon))-extra_cuts,1),5);
     document.getElementById("score").style.display="block";
     document.getElementById("score").textContent=setText("Ваш счет: ","Your score: ") +String.fromCodePoint(11088).repeat(stars);
     document.getElementById("yours").style.display="block";
@@ -130,10 +195,10 @@ function check() {
       
     }
     var txt = setText("Ваши разрезы: ","Your slices: ") +your_cuts.join(", ");
-    if (txt.length > 30) document.getElementById("yours").style.fontSize="1.5vw";
-    else if (txt.length > 50) document.getElementById("yours").style.fontSize="1.0vw";
-    else if (txt.length > 100) document.getElementById("yours").style.fontSize="0.5vw";
-    else document.getElementById("yours").style.fontSize="3vw";
+    if (txt.length > 30) document.getElementById("yours").style.fontSize="1.25vw";
+    else if (txt.length > 50) document.getElementById("yours").style.fontSize="0.75vw";
+    else if (txt.length > 100) document.getElementById("yours").style.fontSize="0.4vw";
+    else document.getElementById("yours").style.fontSize="2vw";
     document.getElementById("yours").innerHTML= txt;
     document.getElementById("extra").style.display="block";
     document.getElementById("extra").textContent=setText("Лишних разрезов: ","Extra cuts: ") +extra_cuts;
@@ -157,7 +222,32 @@ function retry() {
 }
 
 function next() {
-  level_no+=1;
+  window.level_no+=1;
+
+  
+
+  YaGames.init()
+
+    .then((ysdk) => {
+
+      ysdk.getLeaderboards()
+  .then(lb => {
+    console.log("Will now set with "+Math.max(window.level_no,window.prev_score));
+
+    // Без extraData.
+    lb.setLeaderboardScore('slicer', Math.max(window.level_no,window.prev_score));
+    window.prev_score = Math.max(window.level_no,window.prev_score);
+ 
+  });
+
+    window.player.setData({
+        score: window.level_no
+    }).then(() => {
+        
+    });
+   
+    });
+
   newGame();
 }
 
@@ -173,9 +263,9 @@ function calculateSlices(slices) {
   return {display: displayable, calculate: calculable}
 }
 
-function newGame() 
-  {
-    resize();
+function insideNewGame() {
+
+  resize();
   
     isGameOn=true;
     document.getElementById("score").style.display="none";
@@ -183,10 +273,10 @@ function newGame()
     document.getElementById("extra").style.display="none";
     document.getElementById("check").disabled="";
     document.getElementById("next").disabled="true";
-    var level_iteration = level_no % levels.length;
-    var speed_increaser = Math.floor(level_no / levels.length)+1;
+    var level_iteration = window.level_no % levels.length;
+    var speed_increaser = Math.floor(window.level_no / levels.length)+1;
     slices = calculateSlices(levels[level_iteration].slices);
-    document.getElementById("level").textContent=setText("Уровень ","Level ")+(level_no+1);
+    document.getElementById("level").textContent=setText("Уровень ","Level ")+(window.level_no+1);
     document.getElementById("goal").textContent=setText("Цель: ","Goal: ")+slices.display;
     document.getElementById("hint").innerHTML=setText("<i>Кликните мышью внутри рамки, чтобы запустить копье</i>","<i>Click inside the frame to throw a spear</i>");
     GOAL_SLICING = slices.calculate;
@@ -199,6 +289,49 @@ draw();
   
 
 update();
+
+
+}
+
+function newGame() 
+  {
+
+    if (window.loadedScore!=0 && window.loadedScore !== undefined) window.level_no=Math.max(window.loadedScore,window.level_no);
+    window.loadedScore=0;
+    YaGames.init()
+
+    .then((ysdk) => {
+        // Informing about starting the gameplay.
+
+        ysdk.features.GameplayAPI?.start();
+
+
+    });
+
+    var shouldShow = Math.random();
+    if (shouldShow > 0.5) {
+    YaGames.init()
+
+    .then((ysdk) => {
+
+          ysdk.adv.showFullscreenAdv({
+
+    callbacks: {
+
+        onClose: function(wasShown) {
+          insideNewGame();
+},
+
+        onError: function(error) {
+
+          console.log(error);
+
+        }
+    }
+  });
+});
+  }
+  else insideNewGame();
 
   }
 
