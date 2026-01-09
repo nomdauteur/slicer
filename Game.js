@@ -67,8 +67,10 @@ NUCLEUS = {
 
 CIRCLE_RADIUS = WIDTH/4;
 
-if (SLICER!=null) SLICER.resize(CIRCLE_RADIUS,NUCLEUS,WIDTH,HEIGHT);
-
+if (SLICER!=null && SLICER != undefined && ctx!=null && ctx != undefined) {
+  SLICER.resize(CIRCLE_RADIUS,NUCLEUS,WIDTH,HEIGHT);
+  draw();
+}
 }
 window.addEventListener('load', load, false);
 
@@ -113,7 +115,7 @@ function check() {
     else extra_cuts = precision.totalCuts - GOAL_SLICING.length -1;
     console.log("You succeeded");
     document.getElementById("next").disabled="";
-    var stars = Math.max(Math.ceil(5 - precision.precision * (5/epsilon))-extra_cuts,1);
+    var stars = Math.min(Math.max(Math.ceil(5 - precision.precision * (5/epsilon))-extra_cuts,1),5);
     document.getElementById("score").style.display="block";
     document.getElementById("score").textContent=setText("Ваш счет: ","Your score: ") +String.fromCodePoint(11088).repeat(stars);
     document.getElementById("yours").style.display="block";
@@ -130,10 +132,10 @@ function check() {
       
     }
     var txt = setText("Ваши разрезы: ","Your slices: ") +your_cuts.join(", ");
-    if (txt.length > 30) document.getElementById("yours").style.fontSize="1.5vw";
-    else if (txt.length > 50) document.getElementById("yours").style.fontSize="1.0vw";
-    else if (txt.length > 100) document.getElementById("yours").style.fontSize="0.5vw";
-    else document.getElementById("yours").style.fontSize="3vw";
+    if (txt.length > 30) document.getElementById("yours").style.fontSize="1.25vw";
+    else if (txt.length > 50) document.getElementById("yours").style.fontSize="0.75vw";
+    else if (txt.length > 100) document.getElementById("yours").style.fontSize="0.4vw";
+    else document.getElementById("yours").style.fontSize="2vw";
     document.getElementById("yours").innerHTML= txt;
     document.getElementById("extra").style.display="block";
     document.getElementById("extra").textContent=setText("Лишних разрезов: ","Extra cuts: ") +extra_cuts;
